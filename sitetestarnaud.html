@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NodeNet</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;900&family=Press+Start+2P&family=Rubik+Mono+One&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CORE TRANSITIONS & BENTO DEFINITIONS --- */
+        :root {
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius-bento: 16px;
+        }
+
+        /* 0. ORIGIN BLUE (LE TOUT PREMIER BLEU - PAR DÉFAUT) */
+        body.theme-origin-blue {
+            --bg: #0b1121;
+            --surface: rgba(30, 41, 59, 0.75);
+            --surface-light: rgba(51, 65, 85, 0.85);
+            --border: #0ea5e9;
+            --border-dim: rgba(14, 165, 233, 0.3);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --glow: 0 4px 20px rgba(14, 165, 233, 0.15);
+            --panel-blur: blur(16px);
+            --font-main: "Inter", sans-serif;
+            --radius-bento: 14px;
+        }
+
+        /* 1. CYBERPUNK + GLASSMORPHISM */
+        body.theme-cyberglass {
+            --bg: linear-gradient(135deg, #0f0c1b 0%, #05020a 100%);
+            --surface: rgba(20, 10, 35, 0.6);
+            --surface-light: rgba(40, 15, 70, 0.75);
+            --border: #ff007f;
+            --border-dim: rgba(0, 242, 254, 0.25);
+            --text-main: #00f2fe;
+            --text-muted: #9d4edd;
+            --accent: #ff007f;
+            --glow: 0 0 15px rgba(255, 0, 127, 0.5);
+            --panel-blur: blur(16px);
+            --font-main: "Fira Code", monospace;
+            --radius-bento: 16px;
+        }
+
+        /* 2. DARK MODE LUXE */
+        body.theme-luxebento {
+            --bg: #050505;
+            --surface: rgba(18, 18, 18, 0.85);
+            --surface-light: rgba(28, 28, 28, 0.95);
+            --border: #d4af37;
+            --border-dim: rgba(212, 175, 55, 0.15);
+            --text-main: #f5f5f7;
+            --text-muted: #7e7e80;
+            --accent: #d4af37;
+            --glow: 0 0 10px rgba(212, 175, 55, 0.15);
+            --panel-blur: blur(25px);
+            --font-main: "Inter", sans-serif;
+            --radius-bento: 20px;
+        }
+
+        /* 3. TECH STARTUP + FUTURISME BLANC */
+        body.theme-techwhite {
+            --bg: #f6f9fc;
+            --surface: rgba(255, 255, 255, 0.85);
+            --surface-light: rgba(241, 245, 249, 0.95);
+            --border: #0066ff;
+            --border-dim: rgba(0, 102, 255, 0.1);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #0066ff;
+            --glow: 0 10px 30px rgba(0, 102, 255, 0.05);
+            --panel-blur: blur(10px);
+            --font-main: "Inter", sans-serif;
+            --radius-bento: 12px;
+        }
+
+        /* 4. FULL NOIR & BLANC RETRO GAMEBOY */
+        body.theme-gameboy {
+            --bg: #8b956d;
+            --surface: #9bbc0f;
+            --surface-light: #c4f014;
+            --border: #0f380f;
+            --border-dim: rgba(15, 56, 15, 0.4);
+            --text-main: #0f380f;
+            --text-muted: #306230;
+            --accent: #0f380f;
+            --glow: none;
+            --panel-blur: none;
+            --font-main: "Press Start 2P", monospace;
+            --radius-bento: 0px;
+        }
+
+        /* 5. Y2K INTERNET EXPLORER */
+        body.theme-y2k {
+            --bg: #3a6ea5;
+            --surface: #d4d0c8;
+            --surface-light: #ffffff;
+            --border: #404040;
+            --border-dim: #808080;
+            --text-main: #000000;
+            --text-muted: #4a4a4a;
+            --accent: #000080;
+            --glow: none;
+            --panel-blur: none;
+            --font-main: "Arial", sans-serif;
+            --radius-bento: 0px;
+        }
+
+        /* 6. RETRO WAVE / SYNTHWAVE */
+        body.theme-synthwave {
+            --bg: #2b0f54;
+            --surface: rgba(36, 14, 69, 0.8);
+            --surface-light: #3d1e6d;
+            --border: #ff00a0;
+            --border-dim: rgba(0, 255, 240, 0.3);
+            --text-main: #00fff0;
+            --text-muted: #ff00a0;
+            --accent: #ffb13b;
+            --glow: 0 0 12px #ff00a0;
+            --panel-blur: blur(12px);
+            --font-main: "Fira Code", monospace;
+            --radius-bento: 8px;
+        }
+
+        /* 7. BRUTALISME NUMÉRIQUE */
+        body.theme-brutalism {
+            --bg: #ffffff;
+            --surface: #ffffff;
+            --surface-light: #ffff00;
+            --border: #000000;
+            --border-dim: #000000;
+            --text-main: #000000;
+            --text-muted: #000000;
+            --accent: #000000;
+            --glow: none;
+            --panel-blur: none;
+            --font-main: "Rubik Mono One", sans-serif;
+            --radius-bento: 0px;
+        }
+
+        /* --- SETUP STANDARD --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-main); }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        /* Styles spécifiques Y2K & Brutalisme */
+        body.theme-y2k .post-card, body.theme-y2k .feed-container, body.theme-y2k .thread-panel, body.theme-y2k .ide-panel { border: 3px outset #fff !important; }
+        body.theme-brutalism .post-card, body.theme-brutalism .feed-container, body.theme-brutalism .thread-panel, body.theme-brutalism .ide-panel { border: 4px solid #000 !important; box-shadow: 6px 6px 0px #000 !important; }
+
+        .lucide, svg {
+            stroke: var(--accent) !important;
+            filter: var(--glow);
+            transition: var(--transition);
+            vertical-align: middle;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: var(--surface);
+            backdrop-filter: var(--panel-blur);
+            -webkit-backdrop-filter: var(--panel-blur);
+            border-bottom: 2px solid var(--border-dim);
+            padding: 0 24px; display: flex; align-items: center; height: 65px; flex-shrink: 0; box-shadow: var(--glow); z-index: 10;
+        }
+
+        .header-actions { display: flex; align-items: center; gap: 16px; width: 100%; justify-content: space-between; }
+        .logo-terminal { font-weight: 900; color: var(--accent); font-size: 16px; letter-spacing: 1px; display:flex; align-items:center; gap:8px;}
+
+        /* Boutons avec Texte + Icone */
+        .btn-text-icon {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--surface-light); color: var(--text-main);
+            border: 1px solid var(--border-dim); padding: 8px 14px;
+            border-radius: calc(var(--radius-bento) / 2);
+            font-size: 12px; font-weight: 600; cursor: pointer; transition: var(--transition);
+        }
+        .btn-text-icon:hover { border-color: var(--accent); box-shadow: var(--glow); }
+
+        .matrix-selector {
+            background: var(--surface-light); color: var(--text-main);
+            border: 2px solid var(--border-dim); padding: 8px 14px;
+            border-radius: calc(var(--radius-bento) / 2);
+            font-size: 12px; outline: none; font-weight: bold; cursor: pointer; transition: var(--transition);
+        }
+
+        /* --- BENTO WORKSPACE --- */
+        .main-container { flex: 1; display: flex; gap: 16px; padding: 16px; height: calc(100vh - 65px); overflow: hidden; }
+
+        .feed-container {
+            flex: 1; display: grid; grid-template-rows: 1fr auto; background: var(--surface);
+            backdrop-filter: var(--panel-blur); -webkit-backdrop-filter: var(--panel-blur);
+            border: 1px solid var(--border-dim); border-radius: var(--radius-bento); overflow: hidden; box-shadow: var(--glow);
+        }
+
+        .posts-list { overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+        .post-card {
+            background: var(--surface-light); border: 1px solid var(--border-dim);
+            border-radius: calc(var(--radius-bento) / 1.5); padding: 16px; display: flex; flex-direction: column; gap: 12px; transition: var(--transition);
+        }
+        .post-card:hover { border-color: var(--accent); box-shadow: var(--glow); }
+
+        .post-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); border-bottom: 1px dashed var(--border-dim); padding-bottom: 8px; font-weight: bold; }
+        .post-image { max-width: 100%; max-height: 250px; object-fit: cover; border-radius: calc(var(--radius-bento) / 2); border: 1px solid var(--border-dim); margin-top: 6px; }
+
+        /* --- INPUT COMPOSER --- */
+        .composer { padding: 16px; background: rgba(0,0,0,0.1); border-top: 1px solid var(--border-dim); }
+        .message-bar {
+            background: var(--surface-light); border: 2px solid var(--border-dim);
+            border-radius: calc(var(--radius-bento) / 2); display: flex; align-items: center; padding: 8px 12px; gap: 12px;
+        }
+
+        .btn-send {
+            background: var(--accent); border: 1px solid var(--border-dim); border-radius: calc(var(--radius-bento) / 3);
+            padding: 8px 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
+            color: var(--bg); font-weight: bold; font-size: 13px;
+        }
+        .btn-send .lucide { stroke: var(--bg) !important; filter: none; }
+
+        .message-input { flex: 1; background: none; border: none; color: var(--text-main); font-size: 14px; outline: none; }
+        .status-indicators { padding-left: 12px; margin-top: 8px; font-size: 12px; color: var(--accent); font-weight: bold; display: flex; gap: 8px; align-items: center;}
+
+        /* --- BENTO SIDE PANELS --- */
+        .thread-panel {
+            width: 380px; height: 100%; background: var(--surface); backdrop-filter: var(--panel-blur); -webkit-backdrop-filter: var(--panel-blur);
+            border: 1px solid var(--border-dim); border-radius: var(--radius-bento); display: none; flex-direction: column; overflow: hidden; box-shadow: var(--glow); z-index: 5;
+        }
+        .thread-panel.open { display: flex; }
+        .panel-header { padding: 0 20px; border-bottom: 1px solid var(--border-dim); display: flex; justify-content: space-between; align-items: center; font-size: 13px; height: 60px; font-weight: bold; }
+
+        /* --- COMPILER WORKSPACE (IDE) --- */
+        .ide-panel {
+            width: 550px; height: 100%; background: #0b0f19; border: 2px solid var(--border-dim);
+            border-radius: var(--radius-bento); display: none; flex-direction: column; overflow: hidden; box-shadow: var(--glow); z-index: 5;
+        }
+        .ide-panel.open { display: flex; }
+        .ide-textarea {
+            flex: 1; background: #05080f; border: none; color: #38bdf8; font-family: "Fira Code", monospace;
+            font-size: 13px; padding: 16px; resize: none; outline: none; line-height: 1.5;
+        }
+
+        @media (max-width: 850px) {
+            .thread-panel, .ide-panel { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; border-radius: 0; z-index: 100; }
+        }
+    </style>
+</head>
+<body class="theme-origin-blue">
+
+    <div id="authOverlay" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); backdrop-filter:blur(20px); z-index:1000; display:flex; align-items:center; justify-content:center;">
+        <div style="border:2px solid var(--border-dim); padding:40px; width:100%; max-width:420px; display:flex; flex-direction:column; gap:20px; background:var(--surface); border-radius:var(--radius-bento); box-shadow:var(--glow);">
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px; border-bottom:1px solid var(--border-dim); padding-bottom:15px;">
+                <i data-lucide="network" size="28"></i>
+                <h2 style="color:var(--accent); font-size:18px; font-weight:900;">NODE LOGIN</h2>
+            </div>
+            <div>
+                <span style="font-size:12px; text-transform:uppercase; font-weight:bold; display:flex; align-items:center; gap:6px;"><i data-lucide="user" size="14"></i> Identifiant</span>
+                <input type="text" id="authUsername" class="message-input" style="background:var(--surface-light); border:1px solid var(--border-dim); padding:12px; width:100%; margin-top:8px; border-radius:8px;">
+            </div>
+            <div>
+                <span style="font-size:12px; text-transform:uppercase; font-weight:bold; display:flex; align-items:center; gap:6px;"><i data-lucide="key" size="14"></i> Clé Secrète</span>
+                <input type="password" id="authPassword" class="message-input" style="background:var(--surface-light); border:1px solid var(--border-dim); padding:12px; width:100%; margin-top:8px; border-radius:8px;">
+            </div>
+            <div style="display:flex; gap:12px; margin-top:10px;">
+                <button onclick="handleAuth('login')" class="btn-text-icon" style="flex:1; justify-content:center;"><i data-lucide="log-in" size="16"></i> Connect</button>
+                <button onclick="handleAuth('register')" class="btn-text-icon" style="flex:1; justify-content:center; background:var(--accent); color:var(--bg);"><i data-lucide="plus-circle" size="16" style="stroke:var(--bg)!important;"></i> New</button>
+            </div>
+            <span id="authError" style="color:#ff3366; font-size:12px; text-align:center; font-weight:bold;"></span>
+        </div>
+    </div>
+
+    <header>
+        <div class="header-actions">
+            <h3 class="logo-terminal"><i data-lucide="hexagon" size="20"></i> MESH_OS</h3>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="btn-text-icon" onclick="toggleFriendsPanel()">
+                    <i data-lucide="messages-square" size="16"></i> <span class="hide-mobile">Réseau</span>
+                </button>
+                <button class="btn-text-icon" onclick="toggleSettingsPanel()">
+                    <i data-lucide="palette" size="16"></i> <span class="hide-mobile">Thèmes</span>
+                </button>
+                <div style="display: flex; align-items: center; gap: 12px; margin-left:8px; border-left:1px solid var(--border-dim); padding-left:16px;">
+                    <span id="displayUsername" style="font-size: 13px; color: var(--accent); font-weight: 900; display:flex; align-items:center; gap:6px;"></span>
+                    <button onclick="handleLogout()" class="btn-text-icon" style="padding:8px;" title="Déconnexion">
+                        <i data-lucide="power" size="16"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        
+        <div class="feed-container">
+            <div class="posts-list" id="globalFeed"></div>
+            <div class="composer">
+                <div class="message-bar">
+                    <button class="btn-text-icon" onclick="openIDE()" title="Ouvrir le Compilateur Code" style="padding:8px;"><i data-lucide="code-xml" size="18"></i></button>
+                    <label class="btn-text-icon" style="padding:8px; cursor:pointer;" title="Joindre une Image">
+                        <i data-lucide="image-plus" size="18"></i>
+                        <input type="file" id="postImgFile" accept="image/*" style="display:none;" onchange="handleImgUpload(this)">
+                    </label>
+                    <input type="text" id="postText" class="message-input" placeholder="Transmettre un message sur le réseau global..." autocomplete="off">
+                    <button class="btn-send" onclick="publishNewPost()">Envoyer <i data-lucide="send" size="16"></i></button>
+                </div>
+                <div class="status-indicators" id="statusBox"></div>
+            </div>
+        </div>
+
+        <div class="thread-panel" id="settingsPanel">
+            <div class="panel-header">
+                <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="swatch-book" size="18"></i> SKINS & THÈMES</span>
+                <button onclick="toggleSettingsPanel()" class="btn-text-icon" style="padding:6px;"><i data-lucide="x" size="16"></i></button>
+            </div>
+            <div style="padding:24px; display:flex; flex-direction:column; gap:16px;">
+                <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="monitor" size="14"></i> SÉLECTIONNER L'INTERFACE VISUELLE :
+                </label>
+                <select id="matrixThemeSelector" class="matrix-selector" style="width:100%; height:45px; font-size:13px;" onchange="shiftDimension(this.value)">
+                    <option value="origin-blue">Origin Blue</option>
+                    <option value="cyberglass">Cyberpunk</option>
+                    <option value="luxebento">Luxe Dark</option>
+                    <option value="techwhite">White StarTech</option>
+                    <option value="gameboy">GameBoy </option>
+                    <option value="y2k">Internet Explorer</option>
+                    <option value="synthwave">Retro Synthwave</option>
+                    
+                </select>
+            </div>
+        </div>
+
+        <div class="thread-panel" id="friendsPanel">
+            <div class="panel-header">
+                <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="users" size="18"></i> CONTACTS & DM</span>
+                <button onclick="toggleFriendsPanel()" class="btn-text-icon" style="padding:6px;"><i data-lucide="x" size="16"></i></button>
+            </div>
+            <div id="friendsList" class="posts-list" style="max-height:220px; padding:12px; border-bottom:2px dashed var(--border-dim);"></div>
+            
+            <div id="dmSection" style="flex:1; display:none; flex-direction:column; overflow:hidden;">
+                <div class="panel-header" style="background:rgba(0,0,0,0.15); height:55px;">
+                    <span id="activeDmTarget" style="color:var(--accent); display:flex; align-items:center; gap:6px;"><i data-lucide="lock" size="14"></i> DM_ACTIF</span>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="addFriendFromDm()" class="btn-text-icon" style="padding:6px;" title="Ajouter aux contacts"><i data-lucide="user-plus" size="14"></i></button>
+                        <button onclick="closeDmChat()" class="btn-text-icon" style="padding:6px 10px;"><i data-lucide="x-circle" size="14"></i> Fermer</button>
+                    </div>
+                </div>
+                <div id="dmMessages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px;"></div>
+                <div class="composer" style="padding:12px;">
+                    <div class="message-bar">
+                        <input type="text" id="dmInput" class="message-input" placeholder="Message crypté..." autocomplete="off">
+                        <button class="btn-send" style="padding:8px 12px;" onclick="sendDirectMessage()"><i data-lucide="send" size="14"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div id="dmPlaceholder" style="flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px; color:var(--text-muted); font-size:13px; padding:20px; text-align:center;">
+                <i data-lucide="message-square-dashed" size="32"></i>
+                [Sélectionnez un contact pour initier une liaison privée]
+            </div>
+        </div>
+
+        <div class="ide-panel" id="idePanel">
+            <div class="panel-header" style="height:60px;">
+                <span style="display:flex; align-items:center; gap:8px;"><i data-lucide="terminal" size="18"></i> COMPILATEUR</span>
+                <select id="ideLang" class="matrix-selector" onchange="adaptTemplateLanguage()" style="margin-left:12px;">
+                    <option value="javascript">JavaScript Runtime</option>
+                    <option value="html">HTML Render Stream</option>
+                </select>
+                <div style="flex:1;"></div>
+                <button onclick="closeIDE()" class="btn-text-icon" style="padding:6px;"><i data-lucide="x" size="16"></i></button>
+            </div>
+            <textarea id="ideSource" class="ide-textarea" spellcheck="false"></textarea>
+            <div style="padding:12px; display:flex; gap:12px; background:rgba(0,0,0,0.5); border-top:1px solid var(--border-dim);">
+                <button class="btn-text-icon" style="flex:1; justify-content:center;" onclick="injectIdeCodeIntoBar()">
+                    <i data-lucide="arrow-down-to-line" size="16"></i> Joindre au Post
+                </button>
+                <button class="btn-text-icon" style="flex:1; justify-content:center; background:var(--accent); color:var(--bg);" onclick="executeCompiler()">
+                    <i data-lucide="play" size="16" style="stroke:var(--bg)!important;"></i> Exécuter (Run)
+                </button>
+            </div>
+            <div style="height:150px; background:#020617; border-top:1px solid var(--border-dim); display:flex; flex-direction:column;">
+                <div style="padding:6px 12px; background:rgba(255,255,255,0.05); font-size:11px; color:#aaa; display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="terminal-square" size="12"></i> CONSOLE OUTPUT
+                </div>
+                <div style="flex:1; overflow-y:auto; padding:12px; font-family:'Fira Code', monospace; font-size:12px; color:#38bdf8;" id="consoleOutput">> Ready to trace...</div>
+            </div>
+        </div>
+
+    </div>
+
+<style>
+    @media (max-width: 650px) { .hide-mobile { display: none; } }
+</style>
+
+<script>
+    // Initialisation des icônes au démarrage
+    lucide.createIcons();
+
+    const gun = Gun(['https://gun-manhattan.herokuapp.com/gun', 'https://gundb-relay.onrender.com/gun']);
+    const user = gun.user(); 
+
+    const postsNode = gun.get('mesh-posts-origin-v1');
+    const dmRegistry = gun.get('mesh-dms-origin-v1');
+
+    let mySeed = ""; 
+    let currentConfirmedPseudo = "";
+    let activeDmRoomId = null;
+    let activeDmTargetUid = null;
+    let activeDmTargetName = "";
+    let base64ImageCache = "";
+    let codeSnippetCache = "";
+    let codeLanguageCache = "javascript";
+    let friendsListCache = JSON.parse(localStorage.getItem('mesh_friends_list')) || {};
+
+    const templates = {
+        javascript: `// Terminal JS Actif\nconsole.log("Core matrix sub-routine active.\\nTimestamp: " + Date.now());`,
+        html: `<div style="color:#00ff22; background:#000; padding:10px; border-radius:8px;">\n  <h3>📡 HTML Node Ready</h3>\n</div>`
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+        // Chargement du thème
+        const activeTheme = localStorage.getItem('matrix_theme') || 'origin-blue';
+        document.getElementById('matrixThemeSelector').value = activeTheme;
+        shiftDimension(activeTheme);
+
+        // Auto-login
+        const savedUser = localStorage.getItem('terminal_remember_user');
+        const savedPass = localStorage.getItem('terminal_remember_pass');
+        if (savedUser && savedPass) {
+            document.getElementById('authUsername').value = savedUser;
+            document.getElementById('authPassword').value = savedPass;
+            handleAuth('login');
+        }
+    });
+
+    function shiftDimension(themeName) {
+        document.body.className = '';
+        document.body.classList.add('theme-' + themeName);
+        localStorage.setItem('matrix_theme', themeName);
+    }
+
+    function handleAuth(type) {
+        const alias = document.getElementById('authUsername').value.trim();
+        const pass = document.getElementById('authPassword').value.trim();
+        const errEl = document.getElementById('authError');
+        if(!alias || !pass) return;
+
+        if(type === 'register') {
+            user.create(alias, pass, (ack) => {
+                if(ack.err) errEl.innerText = ack.err.toUpperCase();
+                else user.auth(alias, pass, () => { loginSuccess(alias, pass); });
+            });
+        } else {
+            user.auth(alias, pass, (ack) => {
+                if(ack.err) { errEl.innerText = "ACCÈS REFUSÉ"; }
+                else { loginSuccess(alias, pass); }
+            });
+        }
+    }
+
+    function loginSuccess(u, p) {
+        mySeed = user.is.pub; currentConfirmedPseudo = user.is.alias;
+        localStorage.setItem('terminal_remember_user', u);
+        localStorage.setItem('terminal_remember_pass', p);
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('displayUsername').innerHTML = `<i data-lucide="user-check" size="16"></i> ${user.is.alias}`;
+        lucide.createIcons();
+        initDataStreams();
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('terminal_remember_user');
+        localStorage.removeItem('terminal_remember_pass');
+        user.leave(); window.location.reload();
+    }
+
+    function toggleFriendsPanel() { document.getElementById('settingsPanel').classList.remove('open'); document.getElementById('friendsPanel').classList.toggle('open'); if(document.getElementById('friendsPanel').classList.contains('open')) renderFriendsList(); }
+    function toggleSettingsPanel() { document.getElementById('friendsPanel').classList.remove('open'); document.getElementById('settingsPanel').classList.toggle('open'); }
+
+    function openIDE() { document.getElementById('idePanel').classList.add('open'); adaptTemplateLanguage(); }
+    function closeIDE() { document.getElementById('idePanel').classList.remove('open'); }
+    function adaptTemplateLanguage() { const l = document.getElementById('ideLang').value; document.getElementById('ideSource').value = templates[l] || ''; }
+
+    function injectIdeCodeIntoBar() { 
+        codeSnippetCache = document.getElementById('ideSource').value; 
+        codeLanguageCache = document.getElementById('ideLang').value; 
+        document.getElementById('statusBox').innerHTML = `<i data-lucide="check-circle-2" size="14"></i> [CODE_${codeLanguageCache.toUpperCase()}_PRÊT]`; 
+        lucide.createIcons();
+        closeIDE(); 
+    }
+
+    function executeCompiler() {
+        const code = document.getElementById('ideSource').value;
+        const lang = document.getElementById('ideLang').value;
+        const out = document.getElementById('consoleOutput');
+        out.innerText = "";
+        
+        if(lang === 'javascript') {
+            try {
+                let logs = [];
+                const oldLog = console.log;
+                console.log = (m) => logs.push(m);
+                eval(code);
+                console.log = oldLog;
+                out.innerText = logs.length ? logs.join("\n") : "> Exécution terminée (Aucun log).";
+            } catch(e) { out.innerText = "ERREUR: " + e.message; }
+        } else if(lang === 'html') {
+            out.innerText = "> Flux HTML validé. Joignez-le au post pour voir le rendu.";
+        }
+    }
+
+    function addFriend(name, uid) {
+        if(uid === mySeed) return;
+        friendsListCache[uid] = name;
+        localStorage.setItem('mesh_friends_list', JSON.stringify(friendsListCache));
+        renderFriendsList();
+    }
+    function addFriendFromDm() { if (activeDmTargetUid && activeDmTargetName) addFriend(activeDmTargetName, activeDmTargetUid); }
+
+    function renderFriendsList() {
+        const listEl = document.getElementById('friendsList'); listEl.innerHTML = '';
+        const keys = Object.keys(friendsListCache);
+        if(keys.length === 0) { listEl.innerHTML = `<div style="font-size:12px; text-align:center; padding:10px;"><i data-lucide="ghost" size="24" style="margin-bottom:8px;"></i><br>[CARNET D'ADRESSES VIDE]</div>`; lucide.createIcons(); return; }
+        
+        keys.forEach(uid => {
+            const item = document.createElement('div');
+            item.style = "display:flex; justify-content:space-between; align-items:center; background:var(--surface-light); padding:10px 14px; border:1px solid var(--border-dim); margin-bottom:8px; border-radius:8px;";
+            item.innerHTML = `
+                <span style="font-weight:bold; display:flex; align-items:center; gap:8px;"><i data-lucide="user" size="14"></i> ${escapeHTML(friendsListCache[uid])}</span>
+                <button onclick="openDM('${escapeHTML(friendsListCache[uid])}', '${uid}')" class="btn-text-icon" style="padding:6px 12px;"><i data-lucide="message-circle" size="14"></i> Parler</button>
+            `;
+            listEl.appendChild(item);
+        });
+        lucide.createIcons();
+    }
+
+    function openDM(name, targetUid) {
+        document.getElementById('dmPlaceholder').style.display = 'none';
+        document.getElementById('dmSection').style.display = 'flex';
+        activeDmTargetUid = targetUid; activeDmTargetName = name;
+        document.getElementById('activeDmTarget').innerHTML = `<i data-lucide="lock" size="14"></i> CHAT: ${name.toUpperCase()}`;
+        activeDmRoomId = 'room_' + [mySeed, targetUid].sort().join('_');
+        
+        const container = document.getElementById('dmMessages'); container.innerHTML = '';
+        lucide.createIcons();
+
+        dmRegistry.get(activeDmRoomId).get('messages').map().on((msg, id) => {
+            if(!msg || document.getElementById(id)) return;
+            const div = document.createElement('div'); div.id = id;
+            const isMe = msg.senderUid === mySeed;
+            div.style = `max-width:85%; padding:12px; border-radius:12px; font-size:13px; border:1px solid var(--border-dim); ${isMe ? 'align-self:flex-end; background:var(--border-dim); border-bottom-right-radius:2px;' : 'align-self:flex-start; background:rgba(0,0,0,0.2); border-bottom-left-radius:2px;'}`;
+            div.innerHTML = `<strong style="font-size:11px; opacity:0.7; margin-bottom:4px; display:block;">${escapeHTML(msg.senderName)}</strong><div>${escapeHTML(msg.text)}</div>`;
+            container.appendChild(div); container.scrollTop = container.scrollHeight;
+        });
+    }
+
+    function closeDmChat() { document.getElementById('dmPlaceholder').style.display = 'flex'; document.getElementById('dmSection').style.display = 'none'; activeDmRoomId = null; }
+
+    function sendDirectMessage() {
+        if(!activeDmRoomId) return;
+        const input = document.getElementById('dmInput'); const text = input.value.trim(); if(!text) return;
+        const msgId = 'm_' + Date.now();
+        dmRegistry.get(activeDmRoomId).get('messages').get(msgId).put({ senderUid: mySeed, senderName: currentConfirmedPseudo, text: text, timestamp: Date.now() });
+        input.value = '';
+    }
+
+    function initDataStreams() {
+        postsNode.map().on((post, id) => {
+            if (!post || !id || document.getElementById(id)) return;
+            const cleanPost = { id: id, author: post.author, text: post.text, image: post.image, code: post.code, lang: post.lang, timestamp: post.timestamp, uid: post.uid };
+            const feed = document.getElementById('globalFeed');
+            const wrapper = document.createElement('div'); wrapper.innerHTML = generateCardHTML(cleanPost);
+            if(feed.firstChild) feed.insertBefore(wrapper.firstElementChild, feed.firstChild);
+            else feed.appendChild(wrapper.firstElementChild);
+            lucide.createIcons(); // Toujours re-créer les icônes pour le nouveau noeud ajouté
+        });
+    }
+
+    function publishNewPost() {
+        const input = document.getElementById('postText'); const text = input.value.trim();
+        if(!text && !base64ImageCache && !codeSnippetCache) return;
+        const postId = 'p_' + Date.now();
+        postsNode.get(postId).put({ author: currentConfirmedPseudo, text: text, image: base64ImageCache, code: codeSnippetCache, lang: codeLanguageCache, timestamp: Date.now(), uid: mySeed });
+        input.value = ''; base64ImageCache = ''; codeSnippetCache = ''; document.getElementById('statusBox').innerText = '';
+    }
+
+    function generateCardHTML(data) {
+        let img = data.image ? `<img class="post-image" src="${escapeHTML(data.image)}">` : '';
+        let code = '';
+        if(data.code) {
+            if(data.lang === 'html') { code = `<div style="border:1px dashed var(--border-dim); margin-top:12px; padding:8px; border-radius:8px;">${data.code}</div>`; }
+            else { code = `<pre style="background:#020617; padding:16px; border-radius:8px; color:#38bdf8; font-size:13px; overflow-x:auto; margin-top:12px; border:1px solid var(--border-dim); font-family:'Fira Code', monospace;"><code>${escapeHTML(data.code)}</code></pre>`; }
+        }
+        
+        let actions = (data.uid && data.uid !== mySeed) ? `
+            <div style="display:flex; gap:8px;">
+                <button class="btn-text-icon" style="padding:4px 8px; font-size:11px;" onclick="addFriend('${escapeHTML(data.author)}', '${data.uid}'); event.stopPropagation();"><i data-lucide="user-plus" size="12"></i> Ajouter</button>
+                <button class="btn-text-icon" style="padding:4px 8px; font-size:11px;" onclick="openDM('${escapeHTML(data.author)}', '${data.uid}'); event.stopPropagation();"><i data-lucide="message-circle" size="12"></i> DM</button>
+            </div>` : '';
+
+        return `
+            <div class="post-card" id="${data.id}">
+                <div class="post-meta">
+                    <span style="display:flex; align-items:center; gap:6px; font-size:14px;"><i data-lucide="user-circle" size="16"></i> <strong>${escapeHTML(data.author)}</strong></span>
+                    <span style="display:flex; align-items:center; gap:12px;">
+                        ${actions}
+                        <span style="opacity:0.6; display:flex; align-items:center; gap:4px;"><i data-lucide="clock" size="12"></i> ${new Date(data.timestamp).toLocaleTimeString()}</span>
+                    </span>
+                </div>
+                <div style="font-size:15px; margin-top:4px; word-break:break-word; line-height:1.5;">${escapeHTML(data.text || '')}</div>
+                ${img} ${code}
+            </div>
+        `;
+    }
+
+    function handleImgUpload(input) { 
+        const f = input.files[0]; if(!f) return; 
+        const r = new FileReader(); 
+        r.onload = (e) => { 
+            base64ImageCache = e.target.result; 
+            document.getElementById('statusBox').innerHTML = `<i data-lucide="image" size="14"></i> [IMAGE_PRÊTE]`;
+            lucide.createIcons();
+        }; 
+        r.readAsDataURL(f); 
+    }
+    
+    function escapeHTML(str) { return str ? str.replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t)) : ''; }
+
+    document.getElementById('postText').onkeydown = (e) => { if (e.key === 'Enter') publishNewPost(); };
+    document.getElementById('dmInput').onkeydown = (e) => { if (e.key === 'Enter') sendDirectMessage(); };
+</script>
+</body>
+</html>
